@@ -10,7 +10,7 @@ void displayBooks();
 void mainMenu();
 
 //ham menu thu vien
-void libraryMenu();
+
 
 //ham sua sach
 void editBook();
@@ -23,3 +23,10 @@ void sortBooks();
 
 //ham tim kiem sach theo ten
 void searchBookByTitle();
+
+
+//ham viet danh sach vao file
+void saveBooksToFile();
+
+//ham doc danh sach trong file
+void loadBooksFromFile();

@@ -4,7 +4,7 @@
 #include <string.h>
 #include "datatype.h"
 
-struct Book book[MAX_BOOK];
+Book book[MAX_BOOK];
 int bookCount = 0;
 
 //ham menu chinh
@@ -30,23 +30,22 @@ void mainMenu(){
             	system("cls");
                 break;
 			case 3:
-				break;     
-            default:
-            	break;
-        }
-        if(choice == 3) {
+			saveBooksToFile();
         	system("cls");
         	printf("\t=========THANK YOU=========\n");
         	printf("\t=========SEE YOU SOON======\n");
-        	exit(0);
-		}
+        	exit(0);     
+            default:
+            	break;
+        }
 	}
 }
 
 //ham menu thu vien
-void libraryMenu(){
+void libraryMenu() {
 	int select;
 	while(1){
+	system("cls");
     printf("***Library Management System Using C***\n");
     printf("\n\t\tMENU\n");
     printf("\t======================\n");
@@ -63,26 +62,31 @@ void libraryMenu(){
     switch (select) {
             case 1:
                 addBook();
+                saveBooksToFile();
                 break;
             case 2:
                 displayBooks();
                 break;
 			case 3:
 				editBook();
+				saveBooksToFile();
 				break;
 			case 4:
 				deleteBook();
+				saveBooksToFile();
 				break;
 			case 5:
 				sortBooks();
+				saveBooksToFile();
 				break;
 			case 6:
 				searchBookByTitle();
 				break;
 			case 7:
+				saveBooksToFile();
 				return;     
             default:
-                break;
+                continue;
         }
 	}
 }   
@@ -95,19 +99,48 @@ void addBook() {
         	printf("\nThe library is full!\n");
         	return;
         }
+    Book newBook;
 	printf("\nEnter new book details:\n");
-    printf("Book ID: "); 
-	scanf("%s", book[bookCount].bookId);
-    printf("Title: "); 
-	scanf("%s", book[bookCount].title);
+    int isDuplicate;
+    do {
+        isDuplicate = 0;
+        printf("ID: ");
+        scanf("%s", newBook.bookId);
+        int i;
+        for (i = 0; i < bookCount; i++) {
+            if (strcmp(book[i].bookId, newBook.bookId) == 0) {
+                printf("ERROR: Book ID already exists! Please enter a unique ID.\n");
+                isDuplicate = 1;
+                break;
+            }
+        }
+    } while (isDuplicate);
+    strcpy(book[bookCount].bookId, newBook.bookId);
+    getchar();
+    do {
+        isDuplicate = 0;
+        printf("Title: ");
+        scanf(" %[^\n]", newBook.title);
+        int i;
+        for (i = 0; i < bookCount; i++) {
+            if (strcmp(book[i].title, newBook.title) == 0) {
+                printf("\nERROR: Book Title already exists! Please enter a unique title.\n");
+                isDuplicate = 1;
+                break;
+            }
+        }
+    } while (isDuplicate);
+    strcpy(book[bookCount].title, newBook.title);
+    getchar();
     printf("Author: "); 
-	scanf("%s", book[bookCount].author);
+	scanf("%[^\n]", book[bookCount].author);
     printf("Quantity: "); 
 	scanf("%d", &book[bookCount].quantity);
     printf("Price: "); 
 	scanf("%d", &book[bookCount].price);
     printf("Publication Date (dd/mm/yyyy): ");
     scanf("%d %d %d", &book[bookCount].publication.day, &book[bookCount].publication.month, &book[bookCount].publication.year);
+    book[bookCount] = newBook;
     bookCount++;
     printf("Book added successfully!\n\n");
     char back;
@@ -181,10 +214,26 @@ void editBook() {
             printf("Publication Date: %02d/%02d/%04d\n", book[i].publication.day, book[i].publication.month, book[i].publication.year);
             printf("\n\t****UPDATE THE NEW BOOK****\n");
             printf("\nEnter new details:\n");
-            printf("New Title: ");
-            scanf("%s", book[i].title);
+            int isDuplicate;
+            char newTitle[30];
+           	do {
+                isDuplicate = 0;
+                printf("\nNew Title: ");
+                fflush(stdin);
+                scanf(" %[^\n]", newTitle);
+				int j;
+                for (j = 0; j < bookCount; j++) {
+                    if (j != i && strcmp(book[j].title, newTitle) == 0) {
+                        printf("\nERROR: Book title already exists! Please enter a different title.\n");
+                        isDuplicate = 1;
+                        break;
+                    }
+                }
+            } while (isDuplicate);
+            strcpy(book[i].title, newTitle);
+    		getchar();
             printf("New Author: ");
-            scanf("%s", book[i].author);
+            scanf(" %[^\n]", book[i].author);
             printf("New Quantity: ");
             scanf("%d", &book[i].quantity);
             printf("New Price: ");
@@ -218,7 +267,7 @@ void deleteBook() {
     char bookId[10];
     printf("\nEnter Book ID to delete: ");
     scanf("%s", bookId);
-    int index = bookId;
+    int index = -1;
     int i;
     for (i = 0; i < bookCount; i++) {
         if (strcmp(book[i].bookId, bookId) == 0) {
@@ -226,7 +275,7 @@ void deleteBook() {
             break;
         }
     }
-    if (index < 0 || index > bookCount) {
+    if (index == -1) {
         printf("\nBook ID not found!\n");
         return;
     }
@@ -266,7 +315,7 @@ void sortBooks() {
                 swap = 1;
             }
             if (swap) {
-                struct Book temp = book[i];
+                Book temp = book[i];
                 book[i] = book[j];
                 book[j] = temp;
             }
@@ -282,7 +331,7 @@ void searchBookByTitle() {
     printf("\n\t****SEARCH BOOK BY TITLE****\n");
     char searchTitle[30];
     printf("\nEnter book title to search: ");
-    scanf(" %s", searchTitle);
+    scanf(" %[^\n]", searchTitle);
     int found = 0;
     printf("|==========|==============================|====================|==========|==========|==========|\n");
     printf("|%-10s|%-30s|%-20s|%-10s|%-10s|%-10s|\n", "Book ID", "Title", "Author", "Quantity", "Price", "Pub Date");
@@ -313,3 +362,49 @@ void searchBookByTitle() {
         }
     } while (back != 'b' && back != '0');
 }
+
+//ham viet danh sach vao file
+void saveBooksToFile() {
+    FILE *file = fopen("Book.bin", "wb");
+    if (file == NULL) {
+        printf("\nError: Unable to open file for writing!\n");
+        return;
+    }
+    if (fwrite(&bookCount, sizeof(int), 1, file) != 1) {
+        printf("\nError writing book count!\n");
+        fclose(file);
+        return;
+    }
+    if (fwrite(book, sizeof(Book), bookCount, file) != bookCount) {
+        printf("\nError writing book list!\n");
+        fclose(file);
+        return;
+    }
+    fclose(file);
+    printf("\nSuccessfully saved %d books to file!\n", bookCount);
+}
+
+//ham doc danh sach trong file
+void loadBooksFromFile() {
+    FILE *file = fopen("Book.bin", "rb");
+    if (file == NULL) {
+        printf("\nNo data file found, initializing an empty list.\n");
+        return;
+    }
+    if (fread(&bookCount, sizeof(int), 1, file) != 1) {
+        printf("\nError reading book count!\n");
+        fclose(file);
+        bookCount = 0;
+        return;
+    }
+    if (bookCount > MAX_BOOK || fread(book, sizeof(Book), bookCount, file) != bookCount) {
+        printf("\nError reading book list! The file may be corrupted.\n");
+        fclose(file);
+        bookCount = 0;
+        return;
+    }
+    fclose(file);
+    printf("\nSuccessfully loaded %d books from file!\n", bookCount);
+}
+
+

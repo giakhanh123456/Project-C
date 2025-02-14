@@ -29,7 +29,7 @@ IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
 CompilerSettings=0000000000000000000000000
-UnitCount=7
+UnitCount=6
 
 [VersionInfo]
 Major=1
@@ -61,36 +61,29 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=Book.bin
-Folder=data
-Compile=0
-Link=0
+FileName=datatype.h
+Folder=include
+Compile=1
+Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
-
-[Unit2]
-FileName=Date.bin
-Folder=data
-Compile=0
-Link=0
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
+CompileCpp=0
 
 [Unit4]
-FileName=Member.bin
-Folder=data
-Compile=0
-Link=0
+FileName=function.h
+Folder=include
+Compile=1
+Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
+CompileCpp=0
 
 [Unit5]
-FileName=datatype.h
+FileName=function.c
 CompileCpp=0
-Folder=include
+Folder=src
 Compile=1
 Link=1
 Priority=1000
@@ -98,11 +91,11 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit6]
-FileName=function.h
+FileName=Book.bin
 CompileCpp=0
-Folder=include
-Compile=1
-Link=1
+Folder=data
+Compile=0
+Link=0
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
@@ -113,6 +106,15 @@ CompileCpp=0
 Folder=src
 Compile=1
 Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit2]
+FileName=Member.bin
+Folder=data
+Compile=0
+Link=0
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
