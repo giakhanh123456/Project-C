@@ -7,8 +7,7 @@
 int main(int argc, char *argv[]) {
 	system("cls");
 	system("color 3");
-	loadBooksFromFile();
+	loadFromFile();
 	mainMenu();
-	void saveBooksToFile();
 	return 0;
 }

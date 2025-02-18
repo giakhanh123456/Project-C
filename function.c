@@ -3,9 +3,56 @@
 #include <stdlib.h>
 #include <string.h>
 #include "datatype.h"
+#include "function.h"
 
 Book book[MAX_BOOK];
 int bookCount = 0;
+
+// Ham luu du lieu vao file
+void saveToFile() {
+    FILE *file = fopen("book.bin", "wb");
+    if (file == NULL) {
+        perror("Error opening file for writing");
+        exit(1); // Exit with an error code
+    }
+    if (fwrite(&bookCount, sizeof(int), 1, file) != 1) {
+        perror("Error writing book count to file");
+        fclose(file);
+        exit(1);
+    }
+    if (fwrite(book, sizeof(Book), bookCount, file) != bookCount) {
+        perror("Error writing books to file");
+        fclose(file);
+        exit(1);
+    }
+    fclose(file);
+}
+
+// Hàm doc du lieu tu file
+void loadFromFile() {
+    FILE *file = fopen("book.bin", "rb");
+    if (file == NULL) {
+        // File doesn't exist or error opening, handle as needed (e.g., start with an empty library)
+        return;
+    }
+    if (fread(&bookCount, sizeof(int), 1, file) != 1) {
+        perror("Error reading book count from file");
+        fclose(file);
+        return; // Or exit, depending on your error handling
+    }
+    if (bookCount > MAX_BOOK) {  // Important Check!
+        fprintf(stderr, "Error: Book count in file exceeds MAX_BOOK.\n");
+        bookCount = 0; // Or handle as appropriate.
+        fclose(file);
+        return;
+    }
+    if (fread(book, sizeof(Book), bookCount, file) != bookCount) {
+        perror("Error reading books from file");
+        fclose(file);
+        return; // Or exit
+    }
+    fclose(file);
+}
 
 //ham menu chinh
 void mainMenu(){
@@ -30,7 +77,7 @@ void mainMenu(){
             	system("cls");
                 break;
 			case 3:
-			saveBooksToFile();
+			saveToFile();
         	system("cls");
         	printf("\t=========THANK YOU=========\n");
         	printf("\t=========SEE YOU SOON======\n");
@@ -62,28 +109,23 @@ void libraryMenu() {
     switch (select) {
             case 1:
                 addBook();
-                saveBooksToFile();
                 break;
             case 2:
                 displayBooks();
                 break;
 			case 3:
 				editBook();
-				saveBooksToFile();
 				break;
 			case 4:
 				deleteBook();
-				saveBooksToFile();
 				break;
 			case 5:
 				sortBooks();
-				saveBooksToFile();
 				break;
 			case 6:
 				searchBookByTitle();
 				break;
-			case 7:
-				saveBooksToFile();
+			case 7:	
 				return;     
             default:
                 continue;
@@ -104,8 +146,8 @@ void addBook() {
     int isDuplicate;
     do {
         isDuplicate = 0;
-        printf("ID: ");
-        scanf("%s", newBook.bookId);
+       	printf("ID: ");
+    	scanf("%s", newBook.bookId);
         int i;
         for (i = 0; i < bookCount; i++) {
             if (strcmp(book[i].bookId, newBook.bookId) == 0) {
@@ -115,12 +157,12 @@ void addBook() {
             }
         }
     } while (isDuplicate);
-    strcpy(book[bookCount].bookId, newBook.bookId);
     getchar();
     do {
         isDuplicate = 0;
         printf("Title: ");
-        scanf(" %[^\n]", newBook.title);
+        fgets(newBook.title, sizeof(newBook.title), stdin);
+    	newBook.title[strcspn(newBook.title, "\n")] = '\0';
         int i;
         for (i = 0; i < bookCount; i++) {
             if (strcmp(book[i].title, newBook.title) == 0) {
@@ -130,18 +172,23 @@ void addBook() {
             }
         }
     } while (isDuplicate);
-    strcpy(book[bookCount].title, newBook.title);
-    getchar();
     printf("Author: "); 
-	scanf("%[^\n]", book[bookCount].author);
-    printf("Quantity: "); 
-	scanf("%d", &book[bookCount].quantity);
+	fgets(newBook.author, sizeof(newBook.author), stdin);
+    newBook.author[strcspn(newBook.author, "\n")] = '\0';
+    printf("Quantity: ");
+    scanf("%d", &newBook.quantity);
     printf("Price: "); 
-	scanf("%d", &book[bookCount].price);
-    printf("Publication Date (dd/mm/yyyy): ");
-    scanf("%d %d %d", &book[bookCount].publication.day, &book[bookCount].publication.month, &book[bookCount].publication.year);
-    book[bookCount] = newBook;
-    bookCount++;
+	scanf("%d", &newBook.price);
+	getchar();
+    inputDate(&newBook.publication);
+    strcpy(book[bookCount].bookId, newBook.bookId);
+    strcpy(book[bookCount].title, newBook.title);
+    strcpy(book[bookCount].author, newBook.author);
+    book[bookCount].quantity = newBook.quantity;
+    book[bookCount].price = newBook.price;
+    book[bookCount].publication = newBook.publication;
+    book[bookCount++] = newBook;
+    saveToFile();
     printf("Book added successfully!\n\n");
     char back;
    	do {
@@ -170,10 +217,18 @@ void displayBooks() {
     printf("|==========|==============================|====================|==========|==========|==========|\n");
     int i;
     for(i = 0; i < bookCount; i++) {
-    	printf("|%-10s|%-30s|%-20s|%-10d|%-10d|%02d/%02d/%04d|\n",
-               book[i].bookId, book[i].title, book[i].author,
-               book[i].quantity, book[i].price,
-               book[i].publication.day, book[i].publication.month, book[i].publication.year);
+    if (book[i].publication.day < 1 || book[i].publication.day > 31 ||
+    book[i].publication.month < 1 || book[i].publication.month > 12 ||
+    book[i].publication.year < 0) {
+    printf("|%-10s|%-30s|%-20s|%-10d|%-10d|INVALID DATE|\n",
+           book[i].bookId, book[i].title, book[i].author,
+           book[i].quantity, book[i].price);
+	} else {
+    printf("|%-10s|%-30s|%-20s|%-10d|%-10d|%02d/%02d/%04d|\n",
+           book[i].bookId, book[i].title, book[i].author,
+           book[i].quantity, book[i].price,
+           book[i].publication.day, book[i].publication.month, book[i].publication.year);
+	}
         printf("|----------|------------------------------|--------------------|----------|----------|----------|\n");
 			}
 		}
@@ -193,8 +248,8 @@ void displayBooks() {
 
 //ham sua sach
 void editBook() {
+	int found = 0;
     char editId[10];
-    int found = 0;
     system("cls");
     printf("\n\t****EDIT BOOK****\n");
     printf("\nEnter the Book ID to edit: ");
@@ -218,9 +273,9 @@ void editBook() {
             char newTitle[30];
            	do {
                 isDuplicate = 0;
-                printf("\nNew Title: ");
-                fflush(stdin);
-                scanf(" %[^\n]", newTitle);
+                printf("New Title: ");
+                fgets(newTitle, sizeof(newTitle), stdin);
+            	newTitle[strcspn(book[i].title, "\n")] = '\0';
 				int j;
                 for (j = 0; j < bookCount; j++) {
                     if (j != i && strcmp(book[j].title, newTitle) == 0) {
@@ -232,15 +287,17 @@ void editBook() {
             } while (isDuplicate);
             strcpy(book[i].title, newTitle);
     		getchar();
-            printf("New Author: ");
-            scanf(" %[^\n]", book[i].author);
+    		printf("New Author: ");
+            fgets(book[i].author, sizeof(book[i].author), stdin);
+            book[i].author[strcspn(book[i].author, "\n")] = '\0';
             printf("New Quantity: ");
             scanf("%d", &book[i].quantity);
+            getchar();
             printf("New Price: ");
             scanf("%d", &book[i].price);
-            printf("New Publication Date (dd/mm/yyyy): ");
-            scanf("%d %d %d", &book[i].publication.day, &book[i].publication.month, &book[i].publication.year);
+    		inputDate(&book[i].publication); 
             printf("\nBook details updated successfully!\n");
+            saveToFile();
         }
     }
     if (!found) {
@@ -283,6 +340,7 @@ void deleteBook() {
             book[i] = book[i + 1];
         }
         bookCount--;
+       	saveToFile();
         printf("\nBook deleted successfully!\n");
        char back;
    	do {
@@ -322,6 +380,7 @@ void sortBooks() {
         }
     }
     printf("\nBooks sorted successfully!\n");
+    saveToFile();
     displayBooks();
 }
 
@@ -330,6 +389,7 @@ void searchBookByTitle() {
 	system("cls");
     printf("\n\t****SEARCH BOOK BY TITLE****\n");
     char searchTitle[30];
+    getchar();
     printf("\nEnter book title to search: ");
     scanf(" %[^\n]", searchTitle);
     int found = 0;
@@ -363,48 +423,43 @@ void searchBookByTitle() {
     } while (back != 'b' && back != '0');
 }
 
-//ham viet danh sach vao file
-void saveBooksToFile() {
-    FILE *file = fopen("Book.bin", "wb");
-    if (file == NULL) {
-        printf("\nError: Unable to open file for writing!\n");
-        return;
-    }
-    if (fwrite(&bookCount, sizeof(int), 1, file) != 1) {
-        printf("\nError writing book count!\n");
-        fclose(file);
-        return;
-    }
-    if (fwrite(book, sizeof(Book), bookCount, file) != bookCount) {
-        printf("\nError writing book list!\n");
-        fclose(file);
-        return;
-    }
-    fclose(file);
-    printf("\nSuccessfully saved %d books to file!\n", bookCount);
+// Kiem tra nam nhuan
+bool isLeapYear(int year) {
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
-//ham doc danh sach trong file
-void loadBooksFromFile() {
-    FILE *file = fopen("Book.bin", "rb");
-    if (file == NULL) {
-        printf("\nNo data file found, initializing an empty list.\n");
-        return;
-    }
-    if (fread(&bookCount, sizeof(int), 1, file) != 1) {
-        printf("\nError reading book count!\n");
-        fclose(file);
-        bookCount = 0;
-        return;
-    }
-    if (bookCount > MAX_BOOK || fread(book, sizeof(Book), bookCount, file) != bookCount) {
-        printf("\nError reading book list! The file may be corrupted.\n");
-        fclose(file);
-        bookCount = 0;
-        return;
-    }
-    fclose(file);
-    printf("\nSuccessfully loaded %d books from file!\n", bookCount);
+// Kiem tra ngay hop le
+bool isValidDate(int day, int month, int year) {
+    if (year < 1 || year > 9999 || month < 1 || month > 12 || day < 1) return false;
+    int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (isLeapYear(year)) daysInMonth[2] = 29;
+    return day <= daysInMonth[month];
 }
+
+// Ham nhap ngay tu nguoi dung
+void inputDate(Date *date) {
+    char inputBuffer[100];
+    int num_read;
+    do { 
+        printf("Enter Publication Date (dd mm yyyy): ");
+        if (fgets(inputBuffer, sizeof(inputBuffer), stdin) == NULL) {
+            perror("Error reading input");
+            return; 
+        }
+        inputBuffer[strcspn(inputBuffer, "\n")] = 0; 
+        if (strlen(inputBuffer) == 0) { 
+            printf("No input provided. Please enter the date.\n");
+            continue; 
+        }
+        num_read = sscanf(inputBuffer, "%d %d %d", &date->day, &date->month, &date->year);
+        if (num_read != 3) {
+            printf("Invalid input format. Please enter numbers separated by spaces.\n");
+        } else if (!isValidDate(date->day, date->month, date->year)) {
+            printf("Invalid date! Please enter a valid date.\n");
+        }
+    } while (num_read != 3 || !isValidDate(date->day, date->month, date->year));
+}
+
+
 
 

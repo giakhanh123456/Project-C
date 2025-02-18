@@ -1,4 +1,8 @@
-//noi khai bao ham
+//noi khai bao 
+#ifndef FUNCTION_H
+#define FUNCTION_H
+#include <stdbool.h>
+#include "datatype.h">
 
 //ham them sach
 void addBook();
@@ -10,7 +14,7 @@ void displayBooks();
 void mainMenu();
 
 //ham menu thu vien
-
+void libraryMenu();
 
 //ham sua sach
 void editBook();
@@ -24,9 +28,20 @@ void sortBooks();
 //ham tim kiem sach theo ten
 void searchBookByTitle();
 
-
 //ham viet danh sach vao file
-void saveBooksToFile();
+void saveToFile();
 
 //ham doc danh sach trong file
-void loadBooksFromFile();
+void loadFromFile();
+
+// Kiem tra nam nhuan
+bool isLeapYear(int year);
+
+// Kiem tra ngay hop le
+bool isValidDate(int day, int month, int year);
+
+// Ham nhap ngay tu nguoi dung
+void inputDate(Date *date);
+
+#endif
+

@@ -1,13 +1,11 @@
 //noi khai bao thu vien va struct
-#ifndef DATATYPE_H
-#define DATATYPE_H
 #include <stdbool.h>
 #define MAX_BOOK 100
+#ifndef DATATYPE_H
+#define DATATYPE_H
 //struct ngay thang nam
 typedef struct {
-    int day;
-    int month;
-    int year;
+    int day, month, year;
 } Date;
 
 typedef struct {
@@ -18,16 +16,14 @@ typedef struct {
     int price;
     Date publication;
 } Book;
-extern Book book[MAX_BOOK];
-extern int bookCount;
 
 //struct khach hang
 typedef struct {
-	int memberId;
-	char name[20];
-	char phone[10];
-	bool status;
-	Book BorrowedBooks[MAX_BOOK];
+    char memberId[10];
+    char name[20];
+    char phone[10];
+    int status;
+    Book borrowedBooks[5]; 
 } Member;
 
 #endif
